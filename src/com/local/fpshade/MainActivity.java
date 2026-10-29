@@ -7,32 +7,47 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.text.Editable;
+import android.text.InputType;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Root-free fingerprint-to-action app.
@@ -145,7 +160,14 @@ public class MainActivity extends Activity {
     protected void onPause() {
         paused = true;
         handler.removeCallbacks(statusRunnable);
-        cancelCurrent();
+        // Leaving the app cancels the fingerprint session. Reflect that in the
+        // UI instead of leaving a stale "armed" state behind. Stop before
+        // cancelling so the log says why the session ended.
+        if (running) {
+            stop("left the app");
+        } else {
+            cancelCurrent();
+        }
         // In headless mode the GUI is only a settings screen. It must not stay
         // alive behind the transparent headless window (which would show it).
         // onPause fires even when the activity is only covered by a
@@ -271,22 +293,78 @@ public class MainActivity extends Activity {
             return;
         }
         pickingApp = true;
-        AlertDialog dialog = new AlertDialog.Builder(this)
+
+        final AppAdapter adapter = new AppAdapter(apps);
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(20), dp(4), dp(20), 0);
+
+        final EditText search = new EditText(this);
+        search.setHint(R.string.search_apps);
+        search.setSingleLine(true);
+        search.setInputType(InputType.TYPE_CLASS_TEXT);
+        search.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        search.setTextColor(getColor(R.color.text));
+        search.setHintTextColor(getColor(R.color.text_dim));
+        box.addView(search, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        int listHeight = Math.min(dp(440),
+                (int) (getResources().getDisplayMetrics().heightPixels * 0.55f));
+
+        final ListView list = new ListView(this);
+        list.setDivider(null);
+        list.setAdapter(adapter);
+        box.addView(list, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, listHeight));
+
+        TextView empty = new TextView(this);
+        empty.setText(R.string.no_apps_match);
+        empty.setTextColor(getColor(R.color.text_dim));
+        empty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        empty.setGravity(Gravity.CENTER);
+        empty.setVisibility(View.GONE);
+        box.addView(empty, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, listHeight));
+        list.setEmptyView(empty);
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.pick_app_title)
-                .setAdapter(new AppAdapter(apps), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface d, int which) {
-                        AppLauncher.Entry entry = apps.get(which);
-                        prefs().edit()
-                                .putString(KEY_APP_COMPONENT, entry.flat)
-                                .putString(KEY_APP_LABEL, entry.label)
-                                .apply();
-                        log("app selected: " + entry.label);
-                        updateActionUi();
-                    }
-                })
+                .setView(box)
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
+
+        search.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.filter(s == null ? "" : s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                AppLauncher.Entry entry = adapter.entryAt(position);
+                prefs().edit()
+                        .putString(KEY_APP_COMPONENT, entry.flat)
+                        .putString(KEY_APP_LABEL, entry.label)
+                        .apply();
+                log("app selected: " + entry.label);
+                updateActionUi();
+                dialog.dismiss();
+            }
+        });
+
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface d) {
@@ -294,6 +372,18 @@ public class MainActivity extends Activity {
                 updateActionUi();
                 if (revertOnCancel && getAppComponent() == null) {
                     revertToLastAction();
+                }
+            }
+        });
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface d) {
+                Window window = dialog.getWindow();
+                if (window != null) {
+                    window.setLayout(
+                            (int) (getResources().getDisplayMetrics().widthPixels * 0.92f),
+                            WindowManager.LayoutParams.WRAP_CONTENT);
+                    window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
                 }
             }
         });
@@ -316,23 +406,46 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Icon + name + package for the app picker. */
+    /** Searchable icon + name + package list for the app picker. */
     private final class AppAdapter extends BaseAdapter {
 
-        private final List<AppLauncher.Entry> items;
+        private final List<AppLauncher.Entry> all;
+        private final List<AppLauncher.Entry> visible = new ArrayList<>();
+        private final Map<String, Drawable> icons = new HashMap<>();
 
         AppAdapter(List<AppLauncher.Entry> items) {
-            this.items = items;
+            all = items;
+            visible.addAll(items);
+        }
+
+        void filter(String query) {
+            String q = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
+            visible.clear();
+            if (q.isEmpty()) {
+                visible.addAll(all);
+            } else {
+                for (AppLauncher.Entry entry : all) {
+                    if (entry.label.toLowerCase(Locale.ROOT).contains(q)
+                            || entry.pkg.toLowerCase(Locale.ROOT).contains(q)) {
+                        visible.add(entry);
+                    }
+                }
+            }
+            notifyDataSetChanged();
+        }
+
+        AppLauncher.Entry entryAt(int position) {
+            return visible.get(position);
         }
 
         @Override
         public int getCount() {
-            return items.size();
+            return visible.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return items.get(position);
+            return visible.get(position);
         }
 
         @Override
@@ -346,17 +459,24 @@ public class MainActivity extends Activity {
             if (view == null) {
                 view = getLayoutInflater().inflate(R.layout.item_app, parent, false);
             }
-            AppLauncher.Entry entry = items.get(position);
+            AppLauncher.Entry entry = visible.get(position);
             ImageView icon = view.findViewById(R.id.appIcon);
             TextView name = view.findViewById(R.id.appName);
             TextView pkg = view.findViewById(R.id.appPkg);
             name.setText(entry.label);
             pkg.setText(entry.pkg);
-            try {
-                icon.setImageDrawable(entry.info.loadIcon(getPackageManager()));
-            } catch (Throwable t) {
-                icon.setImageDrawable(null);
+            Drawable drawable;
+            if (icons.containsKey(entry.flat)) {
+                drawable = icons.get(entry.flat);
+            } else {
+                try {
+                    drawable = entry.info.loadIcon(getPackageManager());
+                } catch (Throwable t) {
+                    drawable = null;
+                }
+                icons.put(entry.flat, drawable);
             }
+            icon.setImageDrawable(drawable);
             return view;
         }
     }
@@ -450,6 +570,15 @@ public class MainActivity extends Activity {
     // ---------------------------------------------------------------- control
 
     private void start() {
+        if (selectedAction != null && selectedAction.appLaunch) {
+            String flat = getAppComponent();
+            if (flat == null || AppLauncher.label(this, flat) == null) {
+                // The chosen app is missing (never picked, or uninstalled).
+                log("choose an app first");
+                pickApp(true);
+                return;
+            }
+        }
         if (!hasFingerprintHardware()) {
             log("Fingerprint hardware/enrollment not reported. Add a fingerprint first.");
             return;
@@ -577,7 +706,11 @@ public class MainActivity extends Activity {
         if (code == ERR_HW_UNAVAILABLE || code == ERR_UNABLE_TO_PROCESS
                 || code == ERR_TIMEOUT || code == ERR_NO_SPACE || code == ERR_VENDOR) {
             stop("sensor error, press Arm to try again");
+            return;
         }
+        // Any other error still ends the session; do not leave a stale
+        // "armed" state behind.
+        stop("sensor error, press Arm to try again");
     }
 
     // -------------------------------------------------------------------- misc

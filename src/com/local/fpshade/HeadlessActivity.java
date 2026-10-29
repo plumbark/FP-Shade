@@ -22,6 +22,7 @@ public class HeadlessActivity extends Activity {
 
     private static final String TAG = "FPShade";
     private static final long ARM_TIMEOUT_MS = 10000;
+    private static final long HARD_TIMEOUT_MS = 15000;
     private static final long CONNECT_RETRY_MS = 200;
     private static final int CONNECT_RETRIES = 20;
 
@@ -58,6 +59,15 @@ public class HeadlessActivity extends Activity {
         }
     };
 
+    /** Last line of defence: never leave a hidden activity alive. */
+    private final Runnable hardTimeoutRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.i(TAG, "headless: hard timeout, closing");
+            close();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +76,15 @@ public class HeadlessActivity extends Activity {
         if (action == null) action = Actions.defaultAction();
         // Opening an app is done directly, so it works even without accessibility.
         boolean needsAccessibility = !action.appLaunch;
+
+        if (action.appLaunch) {
+            String flat = prefs().getString(MainActivity.KEY_APP_COMPONENT, null);
+            if (flat == null || AppLauncher.label(this, flat) == null) {
+                Log.i(TAG, "headless: no app selected, opening setup");
+                openSetup();
+                return;
+            }
+        }
 
         if (needsAccessibility && !FpAccessibilityService.isEnabled(this)) {
             Log.i(TAG, "headless: accessibility is off, opening setup");
@@ -91,6 +110,8 @@ public class HeadlessActivity extends Activity {
             close();
             return;
         }
+
+        handler.postDelayed(hardTimeoutRunnable, HARD_TIMEOUT_MS);
 
         if (!needsAccessibility) {
             Log.i(TAG, "headless: launched, arming for app launch");

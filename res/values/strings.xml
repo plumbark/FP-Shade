@@ -68,5 +68,7 @@
     <string name="choose_app">Choose app…</string>
     <string name="change_app">Change app: %1$s</string>
     <string name="pick_app_title">Open which app?</string>
+    <string name="search_apps">Search apps</string>
+    <string name="no_apps_match">No apps match</string>
     <string name="status_acc_not_needed">Accessibility not needed for app launch</string>
 </resources>

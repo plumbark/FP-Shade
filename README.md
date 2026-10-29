@@ -13,8 +13,9 @@ the accessibility API, so nothing needs to be rooted or patched.
 > [Compatibility](#compatibility).
 
 <p align="center">
-  <img src="docs/screenshot.png" width="44%" alt="FP Shade settings screen" />
-  <img src="docs/actions.png" width="44%" alt="FP Shade action list" />
+  <img src="docs/screenshot.png" width="32%" alt="FP Shade settings screen" />
+  <img src="docs/actions.png" width="32%" alt="FP Shade action list" />
+  <img src="docs/picker.png" width="32%" alt="Searchable app picker" />
 </p>
 
 ## Features
@@ -27,6 +28,8 @@ the accessibility API, so nothing needs to be rooted or patched.
   to the side key (double press) and a touch is all it takes.
 - **12 actions.** Panels, device controls, navigation, media, plus launching any
   installed app.
+- **Searchable app picker.** Find the app you want by name or package; icons are
+  cached so long lists scroll smoothly.
 - **No internet permission.** Nothing leaves the device.
 - **Dark, readable settings screen.** Long-press the app icon → *FP Shade
   settings* to open it at any time.
