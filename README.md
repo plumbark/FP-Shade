@@ -12,6 +12,11 @@ the accessibility API, so nothing needs to be rooted or patched.
 > authentication is implemented differently by some manufacturers — see
 > [Compatibility](#compatibility).
 
+<p align="center">
+  <img src="docs/screenshot.png" width="44%" alt="FP Shade settings screen" />
+  <img src="docs/actions.png" width="44%" alt="FP Shade action list" />
+</p>
+
 ## Features
 
 - **No root.** A normal app with two fingerprint permissions and an
