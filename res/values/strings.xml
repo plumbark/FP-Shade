@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FP Shade</string>
+    <string name="acc_desc">Performs the action chosen in FP Shade when the fingerprint matches. No window content is read.</string>
+    <string name="shortcut_settings">FP Shade settings</string>
+
+    <string name="subtitle">Fingerprint → one action. No root.</string>
+    <string name="footer">No root · no internet · one fingerprint, one action</string>
+
+    <string name="status_acc_on">Accessibility connected</string>
+    <string name="status_acc_connecting">Accessibility connecting…</string>
+    <string name="status_acc_off">Accessibility off</string>
+    <string name="status_launch_headless">Launch: headless</string>
+    <string name="status_launch_gui">Launch: GUI</string>
+    <string name="status_state_armed">State: armed — touch the sensor</string>
+    <string name="status_state_idle">State: idle</string>
+
+    <string name="banner_acc">Accessibility is off, so the action cannot fire. Enable FP Shade in Settings → Accessibility.</string>
+
+    <string name="arm_now">Arm now</string>
+    <string name="stop">Stop</string>
+    <string name="accessibility">Accessibility</string>
+    <string name="test_headless">Test headless</string>
+
+    <string name="headless_title">Headless mode</string>
+    <string name="headless_desc">Launching the app arms the sensor — no GUI, no Start press. Long-press the app icon for settings.</string>
+    <string name="headless_on">Headless ON — launching the app arms the sensor.</string>
+    <string name="headless_off">Headless OFF — launching the app opens this screen.</string>
+
+    <string name="action_title">Action on match</string>
+    <string name="log_title">Log</string>
+
+    <string name="section_panels">Panels</string>
+    <string name="section_device">Device</string>
+    <string name="section_navigation">Navigation</string>
+    <string name="section_media">Media</string>
+    <string name="section_apps">Apps</string>
+
+    <string name="action_notifications">Notification shade</string>
+    <string name="action_notifications_desc">Pull down the notification shade.</string>
+    <string name="action_quick_settings">Quick settings</string>
+    <string name="action_quick_settings_desc">Open the quick settings toggle panel.</string>
+    <string name="action_dismiss_shade">Close panel</string>
+    <string name="action_dismiss_shade_desc">Close the notification shade or quick settings if open.</string>
+
+    <string name="action_lock_screen">Lock screen</string>
+    <string name="action_lock_screen_desc">Lock the device and turn the screen off.</string>
+    <string name="action_power_menu">Power menu</string>
+    <string name="action_power_menu_desc">Open the power, restart and emergency menu.</string>
+    <string name="action_screenshot">Screenshot</string>
+    <string name="action_screenshot_desc">Capture the current screen.</string>
+    <string name="action_split_screen">Split screen</string>
+    <string name="action_split_screen_desc">Toggle split-screen mode.</string>
+
+    <string name="action_back">Back</string>
+    <string name="action_back_desc">Send one Back press.</string>
+    <string name="action_home">Home</string>
+    <string name="action_home_desc">Go to the home screen.</string>
+    <string name="action_recents">Recent apps</string>
+    <string name="action_recents_desc">Open the recent-apps switcher.</string>
+
+    <string name="action_media">Play / pause</string>
+    <string name="action_media_desc">Toggle media playback (sends the headset hook key).</string>
+
+    <string name="action_launch_app">Open an app</string>
+    <string name="action_launch_app_desc">Launch an app you choose when the fingerprint matches.</string>
+    <string name="action_launch_app_desc_set">Launch %1$s when the fingerprint matches.</string>
+    <string name="choose_app">Choose app…</string>
+    <string name="change_app">Change app: %1$s</string>
+    <string name="pick_app_title">Open which app?</string>
+    <string name="status_acc_not_needed">Accessibility not needed for app launch</string>
+</resources>

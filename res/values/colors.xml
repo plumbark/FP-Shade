@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark palette: this app is intentionally dark in every system mode. -->
+    <color name="bg">#0E1014</color>
+    <color name="surface">#171B22</color>
+    <color name="surface2">#1F242D</color>
+    <color name="border">#2A3140</color>
+    <color name="text">#F4F6FA</color>
+    <color name="text_dim">#9AA3B2</color>
+    <color name="accent">#5B9DFF</color>
+    <color name="ok">#58D68D</color>
+    <color name="warn">#FFB84D</color>
+    <color name="danger">#FF7B72</color>
+    <color name="danger_btn">#B4342A</color>
+    <color name="warn_bg">#2A2213</color>
+    <color name="icon_bg">#2F6FED</color>
+</resources>
